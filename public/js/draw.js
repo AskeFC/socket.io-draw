@@ -1,6 +1,6 @@
-import socket from './net.js'
+import socket from './net.js';
 
-console.log('draw.js')
+console.log('draw.js');
 
 // Canvas 2D Context
 let context;
@@ -16,243 +16,243 @@ let state = {
     
     color: 'black',
     setColor(c) {
-        this.color = c
-        this.refresh()
-        console.log('setColor to', this.color)
+        this.color = c;
+        this.refresh();
+        console.log('setColor to', this.color);
     },
 
     thickness: 3,
     setThickness(r) {
-        this.thickness = r
-        this.refresh()
-        console.log('setThickness to', this.thickness)
+        this.thickness = r;
+        this.refresh();
+        console.log('setThickness to', this.thickness);
     },
 
     refresh() {
-        context.fillStyle   = this.color
-        context.strokeStyle = this.color
-        context.lineWidth   = this.thickness * 2
-        context.radius      = this.thickness
-        console.log('refresh')
+        context.fillStyle   = this.color;
+        context.strokeStyle = this.color;
+        context.lineWidth   = this.thickness * 2;
+        context.radius      = this.thickness;
+        console.log('refresh');
     }
-}
+};
 
-window.addEventListener('load', onPageLoad)
-window.addEventListener('resize', onResize)
+const onResize = () => {
+    const image = context.getImageData($canvas.clientLeft, $canvas.clientTop, $canvas.width, $canvas.height);
+    const {width, height} = $canvasContainer.getBoundingClientRect();
+    $canvas.width = width;
+    $canvas.height = height;
+    context.putImageData(image, $canvas.clientLeft, $canvas.clientTop);
+    state.refresh();
+};
 
-function onResize() {
-    const image = context.getImageData($canvas.clientLeft, $canvas.clientTop, $canvas.width, $canvas.height)
-    const {width, height} = $canvasContainer.getBoundingClientRect()
-    $canvas.width = width
-    $canvas.height = height
-    context.putImageData(image, $canvas.clientLeft, $canvas.clientTop)
-    state.refresh()
-}
-
-function onPageLoad() {
+const onPageLoad = () => {
     // Canvas
-    initCanvas()
-    state.refresh()
-    
+    initCanvas();
+    state.refresh();
+
+    const undoHandler = () => {
+        undo();
+        Remote.send(Remote.e.undo);
+    };
+
     // Undo button
-    document.getElementById('undo').addEventListener('click', undoHandler)
+    document.getElementById('undo').addEventListener('click', undoHandler);
 
     // Ctrl+Z Undo
     document.addEventListener('keydown', (evt) => {
         if (evt.ctrlKey && evt.keyCode === 90) {
-            undoHandler()
-        }
-    })
+            undoHandler();
+        };
+    });
 
-    function undoHandler() {
-        undo()
-        Remote.send(Remote.e.undo)
-    }
-    
     // Clear button
     document.getElementById('clear').addEventListener('click', () => {
-        clear()
-        Remote.send(Remote.e.clear)
-    })
-    
+        clear();
+        Remote.send(Remote.e.clear);
+    });
+
     // Color Select Shortcuts (Numbers)
     const colors = [
         'black', // 1
         'blue',  // 2
         'red',   // 3
-        'green', // 4
+        'green' // 4
     ];
     document.addEventListener('keydown', (evt) => {        
         const num = evt.keyCode - 49;
         const color = colors[num];
         if (color) {
-            state.setColor(color)
-            Remote.send(Remote.e.setColor, color)
-        }
-    })
+            state.setColor(color);
+            Remote.send(Remote.e.setColor, color);
+        };
+    });
     // Color Buttons
     const $colors = document.getElementById('colors');
     for(const color of colors) {
-        const btn = document.createElement('button')
+        const btn = document.createElement('button');
         btn.style.backgroundColor = color;
         btn.addEventListener('click', () => {
-            state.setColor(color)
-            Remote.send(Remote.e.setColor, color)
-        })
-        $colors.appendChild(btn)
-    }
+            state.setColor(color);
+            Remote.send(Remote.e.setColor, color);
+        });
+        $colors.appendChild(btn);
+    };
 
-    
     // Line Width Buttons
     for(const btn of document.getElementsByClassName('thickness')) {
         btn.addEventListener('click', () => {
             const thickness = btn.getAttribute('data-thickness');
-            state.setThickness(thickness)
-            Remote.send(Remote.e.setThickness, thickness)
-        })
-    }
-}
+            state.setThickness(thickness);
+            Remote.send(Remote.e.setThickness, thickness);
+        });
+    };
+};
 
-function undo() {
+const undo = () => {
     if (state.undoStack.length >= 1) {
         const image = state.undoStack.pop()
-        context.putImageData(image, $canvas.clientLeft, $canvas.clientTop)
+        context.putImageData(image, $canvas.clientLeft, $canvas.clientTop);
     } else {
-        console.log('undo stack is empty')
-    }
-}
+        console.log('undo stack is empty');
+    };
+};
 
-function clear() {
-    $canvas.width = $canvas.width // this magically clears canvas
-    state.undoStack = []
-    state.refresh()
-}
+const clear = () => {
+    $canvas.width = $canvas.width; // this magically clears canvas
+    state.undoStack = [];
+    state.refresh();
+};
 
-function initCanvas() {
+const initCanvas = () => {
     // Canvas
     $canvasContainer = document.getElementById('canvasContainer');
-    $canvas = document.getElementById('canvas')
+    $canvas = document.getElementById('canvas');
     // Initialization
-    let {width, height} = $canvasContainer.getBoundingClientRect()
-    $canvas.width = width
-    $canvas.height = height
-    context = $canvas.getContext('2d')
+    let {width, height} = $canvasContainer.getBoundingClientRect();
+    $canvas.width = width;
+    $canvas.height = height;
+    context = $canvas.getContext('2d');
 
-    // Canvas Events
-    $canvas.addEventListener('mousedown', mouseDown)
-    $canvas.addEventListener('mousemove', mouseMove)
-    $canvas.addEventListener('mouseup', mouseUp)
-
-    function mouseDown(e) {
-        const [x, y] = getMousePos(e)
-        Remote.send(Remote.e.mouseDown, foldScale(x, y))
+    const mouseDown = (e) => {
+        const [x, y] = getMousePos(e);
+        Remote.send(Remote.e.mouseDown, foldScale(x, y));
         // Update undoStack
-        const image = context.getImageData($canvas.clientLeft, $canvas.clientTop, $canvas.width, $canvas.height)
-        state.undoStack.push(image)
-        
-        state.dragging = true
-        mouseMove(e) // draw a point
-    }
+        const image = context.getImageData($canvas.clientLeft, $canvas.clientTop, $canvas.width, $canvas.height);
+        state.undoStack.push(image);
 
-    function mouseMove(e) {
-        const [x, y] = getMousePos(e)
+        state.dragging = true;
+        mouseMove(e); // draw a point
+    };
+
+    const mouseMove = (e) => {
+        const [x, y] = getMousePos(e);
         // may use e.clientX instead of e.offsetX
         if (state.dragging) {
-            context.lineTo(x, y)
-            context.stroke()
-            context.beginPath()
-            context.arc(x, y, state.thickness, 0, Math.PI*2)
-            context.fill()
-            context.beginPath()
-            context.moveTo(x, y)
-            Remote.send(Remote.e.mouseMove, foldScale(x, y))
-        }
-    }
+            context.lineTo(x, y);
+            context.stroke();
+            context.beginPath();
+            context.arc(x, y, state.thickness, 0, Math.PI*2);
+            context.fill();
+            context.beginPath();
+            context.moveTo(x, y);
+            Remote.send(Remote.e.mouseMove, foldScale(x, y));
+        };
+    };
 
-    function mouseUp(e) {
-        state.dragging = false
-        context.beginPath() // clears the previous path
-        Remote.send(Remote.e.mouseUp)
-    }
-}
+    const mouseUp = (e) => {
+        state.dragging = false;
+        context.beginPath(); // clears the previous path
+        Remote.send(Remote.e.mouseUp);
+    };
 
-function getMousePos(e) {
-    const rect = $canvas.getBoundingClientRect()
+    // Canvas Events
+    $canvas.addEventListener('mousedown', mouseDown);
+    $canvas.addEventListener('mousemove', mouseMove);
+    $canvas.addEventListener('mouseup', mouseUp);
+};
+
+const getMousePos = (e) => {
+    const rect = $canvas.getBoundingClientRect();
     // console.log(canvas.width, rect.width)
-    const scaleX = $canvas.width / rect.width
-    const scaleY = $canvas.height / rect.height
+    const scaleX = $canvas.width / rect.width;
+    const scaleY = $canvas.height / rect.height;
     return [
         (e.clientX - rect.left) * scaleX,
-        (e.clientY - rect.top)  * scaleY,
+        (e.clientY - rect.top)  * scaleY
     ];
-}
+};
 
-function foldScale(x, y) {
+const foldScale = (x, y) => {
     return [
         x / $canvas.width,
-        y / $canvas.height,
-    ]
-}
+        y / $canvas.height
+    ];
+};
 
-function unFoldScale(x, y) {
+const unFoldScale = (x, y) => {
     return [
         x * $canvas.width,
-        y * $canvas.height,
-    ]
-}
+        y * $canvas.height
+    ];
+};
 
 const Remote = {
     e: {
         mouseDown: 'mouseDown',
         mouseMove: 'mouseMove',
         mouseUp: 'mouseUp',
-        
+
         setColor: 'setColor',
         setThickness: 'setThickness',
-        
+
         clear: 'clear',
-        undo: 'undo',
+        undo: 'undo'
     },
 
     send(event, message) {
         if (!(event in this.e)) {
-            throw new Error("Unknown event: " + event)
-        }
+            throw new Error("Unknown event: " + event);
+        };
 
         if (message) {
-            socket.emit(event, message)
+            socket.emit(event, message);
         } else {
-            socket.emit(event)
-        }
+            socket.emit(event);
+        };
     },
 
     // init listens for remote events on the socket. It is the recieving code.
     init() {
-        console.log('Remote init()')
+        console.log('Remote init()');
         socket.on(this.e.mouseMove, ([x, y]) => {
-            [x, y] = unFoldScale(x, y)
-            context.lineTo(x, y)
-            context.stroke()
-            context.beginPath()
-            context.arc(x, y, state.thickness, 0, Math.PI*2)
-            context.fill()
-            context.beginPath()
-            context.moveTo(x, y)
-        })
-        
+            [x, y] = unFoldScale(x, y);
+            context.lineTo(x, y);
+            context.stroke();
+            context.beginPath();
+            context.arc(x, y, state.thickness, 0, Math.PI*2);
+            context.fill();
+            context.beginPath();
+            context.moveTo(x, y);
+        });
+
         socket.on(this.e.mouseDown, ([x, y]) => {
-            let image = context.getImageData($canvas.clientLeft, $canvas.clientTop, $canvas.width, $canvas.height)
-            state.undoStack.push(image)
-        })
-        
+            let image = context.getImageData($canvas.clientLeft, $canvas.clientTop, $canvas.width, $canvas.height);
+            state.undoStack.push(image);
+        });
+
         socket.on(this.e.mouseUp, () => {
-            context.beginPath() // clears the previous path
-        })
-        
-        socket.on(this.e.clear, clear)
-        socket.on(this.e.undo, undo)
-        socket.on(this.e.setColor, (c) => state.setColor(c))
-        socket.on(this.e.setThickness, (r) => state.setThickness(r))
-    },
-}
+            context.beginPath(); // clears the previous path
+        });
+
+        socket.on(this.e.clear, clear);
+        socket.on(this.e.undo, undo);
+        socket.on(this.e.setColor, (c) => state.setColor(c));
+        socket.on(this.e.setThickness, (r) => state.setThickness(r));
+    }
+};
+
+window.addEventListener('load', onPageLoad);
+window.addEventListener('resize', onResize);
+
 Remote.init();
