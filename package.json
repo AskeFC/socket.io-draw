@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Shared board for drawing with chat using the socket.io library",
   "main": "app.js",
+  "type": "module",
   "scripts": {
     "nodestart": "node server.js",
     "bunstart": "bun server.js"
@@ -10,7 +11,6 @@
   "private": true,
   "author": "Hassan Algoz",
   "license": "MIT",
-  "type": "module",
   "dependencies": {
     "ejs": "^3.1.9",
     "express": "^4.18.2",
