@@ -4,7 +4,8 @@
   "description": "Shared board for drawing with chat using the socket.io library",
   "main": "app.js",
   "scripts": {
-    "start": "node server.js"
+    "nodestart": "node server.js",
+    "bunstart": "bun server.js"
   },
   "private": true,
   "author": "Hassan Algoz",
