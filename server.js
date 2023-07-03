@@ -1,12 +1,12 @@
 import express from "express";
-const app = express();
-import httppackage from 'http';
-const http = httppackage().Server(app);
-import socketio from 'socket.io';
-const io = socketio(http);
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import path from 'path';
-import morgan from 'morgan';
-const logger = morgan.logger();
+import logger from 'morgan';
+const app = express();
+const http = createServer(app);
+const io = new Server(http);
+
 
 const port = process.env.PORT || 3000;
 app.set('port', port);
