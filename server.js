@@ -2,13 +2,19 @@ import express from "express";
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import logger from 'morgan';
+
 const app = express();
 const http = createServer(app);
 const io = new Server(http);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const port = process.env.PORT || 3000;
+const namespaces = ['one', 'two', 'three'];
+
 app.set('port', port);
 http.listen(port, () => console.log('listening on port ' + port));
 
@@ -19,8 +25,6 @@ app.use(express.static(path.join(__dirname, '/public')));
 
 // middleware
 app.use(logger('dev'));
-
-const namespaces = ['one', 'two', 'three'];
 
 namespaces.map(ns => io.of(`/${ns}`))
 .forEach(ns => {
