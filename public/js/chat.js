@@ -1,3 +1,5 @@
+'use strict';
+
 import socket from './net.js';
 
 // username is used to be compared with 'from' in 'msg' events

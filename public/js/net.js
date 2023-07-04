@@ -1,3 +1,5 @@
+'use strict';
+
 // Socket Connect
 
 // Get namespace from the url

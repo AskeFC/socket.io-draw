@@ -1,3 +1,5 @@
+'use strict';
+
 import socket from './net.js';
 
 console.log('draw.js');
