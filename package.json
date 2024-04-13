@@ -12,7 +12,7 @@
   "author": "Hassan Algoz",
   "license": "MIT",
   "dependencies": {
-    "ejs": "^3.1.9",
+    "ejs": "^3.1.10",
     "express": "^4.19.2",
     "morgan": "^1.10.0",
     "path": "^0.12.7",
